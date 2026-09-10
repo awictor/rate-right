@@ -87,6 +87,7 @@
     <div class="row"><label>Effective tax rate %</label><div class="ig"><span class="pre">%</span><input id="tax" type="number" step="1" value="25"></div></div>
     <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
     <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
+    <div class="row"><label>Hours / day<span class="hint">for the day-rate figure</span></label><div class="ig"><span class="pre">#</span><input id="hoursPerDay" type="number" step="1" value="8"></div></div>
     <div class="row"><label>Billable %<span class="hint">utilization: admin, sales eat the rest</span></label><div class="ig"><span class="pre">%</span><input id="billable" type="number" step="5" value="60"></div></div>
     <div style="margin-top:14px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><button id="copyBtn" class="btn">📋 Copy summary</button><button id="printBtn" class="btn">🖨 PDF</button><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
     <div id="shareMsg" style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px"></div>
@@ -96,7 +97,7 @@
     <h2>Charge at least</h2>
     <div id="hourly" class="big">$0/hr</div>
     <div class="grid3">
-      <div class="stat"><div id="day" class="v">$0</div><div class="k">Day rate (8h)</div></div>
+      <div class="stat"><div id="day" class="v">$0</div><div class="k"><span id="dayLbl">Day rate</span></div></div>
       <div class="stat"><div id="week" class="v">$0</div><div class="k">Week rate</div></div>
     </div>
     <div class="bd">
@@ -154,7 +155,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.10.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.11.0
 </footer>
 
 <script>
@@ -171,7 +172,8 @@ function computeRate(s){
   const grossUp=tax<1 ? s.target/(1-tax) : Infinity;   // pre-tax profit needed for the take-home
   const revenueNeeded=grossUp+s.expenses;              // plus business expenses
   const hourly=billableHours>0 ? revenueNeeded/billableHours : Infinity;
-  return {billableHours, grossUp, revenueNeeded, hourly, day:hourly*8, week:hourly*s.hours,
+  const hpd=s.hoursPerDay>0?s.hoursPerDay:8;
+  return {billableHours, grossUp, revenueNeeded, hourly, day:hourly*hpd, week:hourly*s.hours,
           taxPortion:grossUp-s.target};
 }
 
@@ -222,7 +224,10 @@ function decodeInputs(str){
 }
 
 function calc(){
-  const s=readState(), r=computeRate(s);
+  const s=readState(); s.hoursPerDay=num("hoursPerDay");
+  try{localStorage.setItem("rateright.hoursperday",s.hoursPerDay);}catch(e){}
+  const r=computeRate(s);
+  $("dayLbl").textContent="Day rate ("+(s.hoursPerDay>0?s.hoursPerDay:8)+"h)";
   KEYS.forEach(k=>{try{localStorage.setItem("rateright."+k,s[k]);}catch(e){}});
   const rate=x=>isFinite(x)?money(x):"∞";
   $("hourly").textContent=(isFinite(r.hourly)?money(r.hourly):"∞")+"/hr";
@@ -287,6 +292,7 @@ try{$("yr").textContent=new Date().getFullYear();}catch(e){}
 KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k).value=v;}catch(e){}});
 try{const p=localStorage.getItem("rateright.projhours");if(p!=null)$("projHours").value=p;}catch(e){}
 try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("contingency").value=c;}catch(e){}
+try{const hpd=localStorage.getItem("rateright.hoursperday");if(hpd!=null)$("hoursPerDay").value=hpd;}catch(e){}
 try{const cu=localStorage.getItem("rateright.cur");if(cu&&CURRENCIES.indexOf(cu)>=0){CUR=cu;$("currency").value=cu;document.querySelectorAll(".cur").forEach(e=>e.textContent=CUR);}}catch(e){}
 if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 (function(){
