@@ -31,7 +31,8 @@ check('computeRate: revenue, hourly, day, week',()=>{
   assert.ok(Math.abs(r.revenueNeeded-132000)<0.01);
   assert.ok(Math.abs(r.billableHours-1104)<0.001);
   assert.ok(Math.abs(r.hourly-119.565)<0.01,'hourly '+r.hourly);
-  assert.ok(Math.abs(r.day-r.hourly*8)<0.001);
+  assert.ok(Math.abs(r.day-r.hourly*8)<0.001); // default 8h/day
+  assert.ok(Math.abs(t.computeRate({...base,hoursPerDay:6}).day-r.hourly*6)<0.001); // configurable
   assert.ok(Math.abs(r.week-r.hourly*40)<0.001);
   assert.ok(Math.abs(r.taxPortion-30000)<0.01); // 120000 - 90000
 });
