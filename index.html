@@ -48,6 +48,8 @@
   .bd .li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
   .bd .li:last-child{border-bottom:0;font-weight:700}
   .note{margin-top:12px;font-size:13px;color:var(--muted)}
+  .btn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent-d)}
   .fullwrap{max-width:900px;margin:0 auto;padding:0 20px 20px}
   .sline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
@@ -71,6 +73,8 @@
     <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
     <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
     <div class="row"><label>Billable %<span class="hint">utilization: admin, sales eat the rest</span></label><div class="ig"><span class="pre">%</span><input id="billable" type="number" step="5" value="60"></div></div>
+    <div style="margin-top:14px;text-align:right"><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
+    <div id="shareMsg" style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px"></div>
   </section>
 
   <section class="card result">
@@ -126,7 +130,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.3.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.4.0
 </footer>
 
 <script>
@@ -159,6 +163,18 @@ function salaryEquivalent(s){
 
 const KEYS=["target","expenses","tax","weeks","hours","billable"];
 function readState(){const s={};KEYS.forEach(k=>s[k]=num(k));return s;}
+
+// Share codec: inputs -> compact base64url hash and back.
+function encodeInputs(s){
+  const raw=KEYS.map(k=>+(+s[k]).toFixed(4)).join("~");
+  return btoa(unescape(encodeURIComponent(raw))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function decodeInputs(str){
+  try{ const raw=decodeURIComponent(escape(atob(str.replace(/-/g,"+").replace(/_/g,"/"))));
+    const p=raw.split("~").map(Number); if(p.length!==KEYS.length||p.some(isNaN)) return null;
+    const s={}; KEYS.forEach((k,i)=>s[k]=p[i]); return s;
+  }catch{ return null; }
+}
 
 function calc(){
   const s=readState(), r=computeRate(s);
@@ -193,15 +209,27 @@ function calc(){
   $("se_note").textContent=isFinite(se.premiumX)?`Your rate is ${se.premiumX.toFixed(2)}× a salaried hourly. Freelancers typically need ~2× to cover taxes, benefits, and unbillable time.`:"";
 }
 document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
+$("shareBtn").onclick=()=>{
+  const url=location.origin+location.pathname+"#s="+encodeInputs(readState());
+  const msg=x=>{$("shareMsg").textContent=x;};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(()=>msg("✓ Link copied — reopens these exact numbers."),()=>msg(url));
+  else msg(url);
+};
+function loadFromHash(){
+  const m=(location.hash||"").match(/[#&]s=([^&]+)/); if(!m) return false;
+  const s=decodeInputs(m[1]); if(!s) return false;
+  KEYS.forEach(k=>$(k).value=s[k]); return true;
+}
 $("themeBtn").onclick=()=>{const n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("rateright.theme",n);}catch(e){}$("themeBtn").textContent=n==="dark"?"☀️":"🌙";};
 $("themeBtn").textContent=document.documentElement.getAttribute("data-theme")==="dark"?"☀️":"🌙";
 try{$("yr").textContent=new Date().getFullYear();}catch(e){}
 KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k).value=v;}catch(e){}});
 try{const p=localStorage.getItem("rateright.projhours");if(p!=null)$("projHours").value=p;}catch(e){}
 try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("contingency").value=c;}catch(e){}
+if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 calc();
 
-if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent};
+if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs};
 </script>
 </body>
 </html>

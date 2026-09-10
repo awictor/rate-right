@@ -12,11 +12,13 @@ function el(){ return {value:'',textContent:'',style:{},addEventListener(){},set
 const ids={};
 globalThis.document={getElementById:id=>ids[id]||(ids[id]=el()),querySelectorAll:()=>[],documentElement:el()};
 globalThis.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
-globalThis.window={matchMedia:()=>({matches:false})};
+globalThis.location={hash:'',origin:'',pathname:''};
+globalThis.window={matchMedia:()=>({matches:false}),location:globalThis.location};
 globalThis.matchMedia=globalThis.window.matchMedia;
+try{Object.defineProperty(globalThis,'navigator',{value:{clipboard:{writeText:()=>Promise.resolve()}},configurable:true});}catch{}
 
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];
-eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent};`);
+eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs};`);
 const t=globalThis.__t;
 
 let n=0; const check=(name,fn)=>{fn();n++;console.log('  ok -',name);};
@@ -53,6 +55,11 @@ check('salaryEquivalent: W2 salary, salaried hourly, premium',()=>{
   assert.ok(Math.abs(se.salary-120000)<0.01);
   assert.ok(Math.abs(se.salariedHourly-57.692)<0.01,'sh '+se.salariedHourly);
   assert.ok(Math.abs(se.premiumX-2.072)<0.02,'prem '+se.premiumX);
+});
+
+check('share codec: round-trips inputs, rejects garbage',()=>{
+  assert.deepEqual(t.decodeInputs(t.encodeInputs(base)),base);
+  assert.equal(t.decodeInputs('!!!bad'),null);
 });
 
 console.log(`\n${n} checks passed.`);
