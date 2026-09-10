@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0
+- Glossary tooltips on metric tiles.
+
+## 0.7.0
+- Floor (break-even) rate — the hourly that just covers expenses at zero take-home.
+
+## 0.6.0
+- Print / PDF proposal-ready one-pager.
+
+## 0.5.0
+- Copy rate summary — plain-text rate + salary-equivalent snapshot.
+
 ## 0.4.0
 - Shareable links — inputs encode to a URL hash and reopen exactly on load.
 
