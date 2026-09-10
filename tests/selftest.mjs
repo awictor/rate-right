@@ -16,7 +16,7 @@ globalThis.window={matchMedia:()=>({matches:false})};
 globalThis.matchMedia=globalThis.window.matchMedia;
 
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];
-eval(js+`\n;globalThis.__t={computeRate};`);
+eval(js+`\n;globalThis.__t={computeRate,projectQuote};`);
 const t=globalThis.__t;
 
 let n=0; const check=(name,fn)=>{fn();n++;console.log('  ok -',name);};
@@ -39,6 +39,13 @@ check('computeRate: edges (no billable hours, tax≥100%)',()=>{
 });
 check('computeRate: higher utilization lowers the required rate',()=>{
   assert.ok(t.computeRate({...base,billable:80}).hourly < t.computeRate(base).hourly);
+});
+
+check('projectQuote: hours × rate + contingency',()=>{
+  const q=t.projectQuote(base,40,15); // hourly 119.565; base 4782.6; quote ×1.15
+  assert.ok(Math.abs(q.base-40*q.hourly)<0.001);
+  assert.ok(Math.abs(q.quote-q.base*1.15)<0.001);
+  assert.ok(Math.abs(q.quote-5499.98)<0.5,'quote '+q.quote);
 });
 
 console.log(`\n${n} checks passed.`);

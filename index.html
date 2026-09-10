@@ -48,6 +48,8 @@
   .bd .li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
   .bd .li:last-child{border-bottom:0;font-weight:700}
   .note{margin-top:12px;font-size:13px;color:var(--muted)}
+  .fullwrap{max-width:900px;margin:0 auto;padding:0 20px 20px}
+  .sline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
   footer a{color:var(--accent-d);text-decoration:none}
 </style>
@@ -92,9 +94,27 @@
   </section>
 </div>
 
+<div class="fullwrap">
+  <section class="card">
+    <h2>Fixed-bid project quote</h2>
+    <div class="sline">
+      <span>A</span>
+      <div class="ig" style="width:100px"><span class="pre">#</span><input id="projHours" type="number" step="5" value="40"></div>
+      <span>hour project with a</span>
+      <div class="ig" style="width:90px"><span class="pre">%</span><input id="contingency" type="number" step="5" value="15"></div>
+      <span>contingency buffer:</span>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="stat"><div id="q_base" class="v">$0</div><div class="k">At your rate</div></div>
+      <div class="stat"><div id="q_quote" class="v">$0</div><div class="k">Suggested quote</div></div>
+    </div>
+    <div id="q_note" class="note"></div>
+  </section>
+</div>
+
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.1.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.2.0
 </footer>
 
 <script>
@@ -111,6 +131,12 @@ function computeRate(s){
   const hourly=billableHours>0 ? revenueNeeded/billableHours : Infinity;
   return {billableHours, grossUp, revenueNeeded, hourly, day:hourly*8, week:hourly*s.hours,
           taxPortion:grossUp-s.target};
+}
+
+// Fixed-bid quote from a project's hours at the required hourly rate, plus a contingency buffer.
+function projectQuote(s,projectHours,contingencyPct){
+  const r=computeRate(s), base=projectHours*r.hourly;
+  return {hourly:r.hourly, base, quote:base*(1+contingencyPct/100)};
 }
 
 const KEYS=["target","expenses","tax","weeks","hours","billable"];
@@ -134,15 +160,24 @@ function calc(){
   else if(s.billable<40) noted.push("Low utilization — a higher billable % drops the rate you need.");
   if(isFinite(r.hourly)) noted.push(`At ${money(r.hourly)}/hr you'd bill ${money(r.revenueNeeded)} across ${Math.round(r.billableHours)} hours to keep ${money(s.target)}.`);
   $("note").textContent=noted.join(" ");
+
+  const ph=num("projHours"), cont=num("contingency");
+  try{localStorage.setItem("rateright.projhours",ph);localStorage.setItem("rateright.contingency",cont);}catch(e){}
+  const q=projectQuote(s,ph,cont);
+  $("q_base").textContent=isFinite(q.base)?money(q.base):"∞";
+  $("q_quote").textContent=isFinite(q.quote)?money(q.quote):"∞";
+  $("q_note").textContent=isFinite(q.hourly)?`${ph} h × ${money(q.hourly)}/hr + ${cont}% buffer. Quote fixed-bids from your true rate, not a round number.`:"";
 }
 document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
 $("themeBtn").onclick=()=>{const n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("rateright.theme",n);}catch(e){}$("themeBtn").textContent=n==="dark"?"☀️":"🌙";};
 $("themeBtn").textContent=document.documentElement.getAttribute("data-theme")==="dark"?"☀️":"🌙";
 try{$("yr").textContent=new Date().getFullYear();}catch(e){}
 KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k).value=v;}catch(e){}});
+try{const p=localStorage.getItem("rateright.projhours");if(p!=null)$("projHours").value=p;}catch(e){}
+try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("contingency").value=c;}catch(e){}
 calc();
 
-if(typeof module!=="undefined") module.exports={computeRate};
+if(typeof module!=="undefined") module.exports={computeRate,projectQuote};
 </script>
 </body>
 </html>
