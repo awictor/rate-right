@@ -8,9 +8,9 @@ import { dirname, join } from 'node:path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const html = readFileSync(join(__dirname, '..', 'index.html'), 'utf8');
 
-function el(){ return {value:'',textContent:'',style:{},addEventListener(){},setAttribute(){},getAttribute(){return null;},querySelectorAll(){return[];},onclick:null}; }
+function el(){ return {value:'',textContent:'',style:{},addEventListener(){},setAttribute(){},getAttribute(){return null;},querySelectorAll(){return[];},appendChild(){},onclick:null}; }
 const ids={};
-globalThis.document={getElementById:id=>ids[id]||(ids[id]=el()),querySelectorAll:()=>[],documentElement:el()};
+globalThis.document={getElementById:id=>ids[id]||(ids[id]=el()),createElement:()=>el(),querySelectorAll:()=>[],documentElement:el()};
 globalThis.localStorage={getItem:()=>null,setItem(){},removeItem(){}};
 globalThis.location={hash:'',origin:'',pathname:''};
 globalThis.window={matchMedia:()=>({matches:false}),location:globalThis.location};
