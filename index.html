@@ -50,6 +50,7 @@
   .note{margin-top:12px;font-size:13px;color:var(--muted)}
   .btn{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;padding:8px 13px;font-size:13px;font-weight:600;cursor:pointer}
   .btn:hover{border-color:var(--accent);color:var(--accent-d)}
+  .info{cursor:help;margin-left:3px;color:var(--muted);font-size:10px;vertical-align:super}
   .fullwrap{max-width:900px;margin:0 auto;padding:0 20px 20px}
   .sline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
@@ -139,7 +140,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.7.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.8.0
 </footer>
 
 <script>
@@ -259,6 +260,17 @@ KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k
 try{const p=localStorage.getItem("rateright.projhours");if(p!=null)$("projHours").value=p;}catch(e){}
 try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("contingency").value=c;}catch(e){}
 if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
+(function(){
+  const GLOSS={
+    "Day rate (8h)":"Your hourly rate × 8.",
+    "Week rate":"Your hourly rate × billable hours in a week.",
+    "Billable hrs/yr":"Weeks × hours/week × billable % — the hours you can actually invoice.",
+    "Effective utilization":"Share of worked hours that are billable; the rest is admin, sales, and downtime.",
+    "Floor rate (break-even)":"The rate that just covers business expenses at zero take-home. Below it you lose money.",
+  };
+  document.querySelectorAll(".stat .k").forEach(k=>{ const d=GLOSS[k.textContent.trim()];
+    if(d&&!k.querySelector(".info")){ const i=document.createElement("span"); i.className="info"; i.textContent="ⓘ"; i.title=d; i.setAttribute("aria-label",d); k.appendChild(i); } });
+})();
 calc();
 
 if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate};
