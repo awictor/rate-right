@@ -81,8 +81,9 @@
 <div class="wrap">
   <section class="card">
     <h2>Your goal &amp; reality</h2>
-    <div class="row"><label>Target take-home / year<span class="hint">after tax, in your pocket</span></label><div class="ig"><span class="pre">$</span><input id="target" type="number" step="1000" value="90000"></div></div>
-    <div class="row"><label>Business expenses / year<span class="hint">tools, software, insurance</span></label><div class="ig"><span class="pre">$</span><input id="expenses" type="number" step="500" value="12000"></div></div>
+    <div class="row"><label>Currency</label><div class="ig" style="width:150px"><span class="pre"></span><select id="currency" style="width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:14px;background:var(--field);color:var(--ink)"></select></div></div>
+    <div class="row"><label>Target take-home / year<span class="hint">after tax, in your pocket</span></label><div class="ig"><span class="pre cur">$</span><input id="target" type="number" step="1000" value="90000"></div></div>
+    <div class="row"><label>Business expenses / year<span class="hint">tools, software, insurance</span></label><div class="ig"><span class="pre cur">$</span><input id="expenses" type="number" step="500" value="12000"></div></div>
     <div class="row"><label>Effective tax rate %</label><div class="ig"><span class="pre">%</span><input id="tax" type="number" step="1" value="25"></div></div>
     <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
     <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
@@ -153,13 +154,15 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.9.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.10.0
 </footer>
 
 <script>
 const $=id=>document.getElementById(id);
 const num=id=>{const v=parseFloat($(id).value);return isNaN(v)?0:v;};
-const money=n=>(n<0?"-$":"$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+let CUR="$";
+const money=n=>(n<0?"-":"")+CUR+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+const CURRENCIES=["$","£","€","C$","A$"];
 
 // Required billing rate to hit a take-home goal after tax, expenses, and unbillable time. Pure.
 function computeRate(s){
@@ -259,6 +262,8 @@ function calc(){
   $("se_note").textContent=isFinite(se.premiumX)?`Your rate is ${se.premiumX.toFixed(2)}× a salaried hourly. Freelancers typically need ~2× to cover taxes, benefits, and unbillable time.`:"";
 }
 document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
+(function(){ const sel=$("currency"); CURRENCIES.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o);});
+  sel.addEventListener("change",()=>{ CUR=sel.value; document.querySelectorAll(".cur").forEach(e=>e.textContent=CUR); try{localStorage.setItem("rateright.cur",CUR);}catch(e){} calc(); }); })();
 $("printBtn").onclick=()=>window.print();
 $("copyBtn").onclick=()=>{
   const txt=summaryText(readState()), msg=x=>{$("shareMsg").textContent=x;};
@@ -282,6 +287,7 @@ try{$("yr").textContent=new Date().getFullYear();}catch(e){}
 KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k).value=v;}catch(e){}});
 try{const p=localStorage.getItem("rateright.projhours");if(p!=null)$("projHours").value=p;}catch(e){}
 try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("contingency").value=c;}catch(e){}
+try{const cu=localStorage.getItem("rateright.cur");if(cu&&CURRENCIES.indexOf(cu)>=0){CUR=cu;$("currency").value=cu;document.querySelectorAll(".cur").forEach(e=>e.textContent=CUR);}}catch(e){}
 if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 (function(){
   const GLOSS={
