@@ -2,7 +2,7 @@
 
 **Freelance & consulting rate calculator.** Enter what you want to take home; get the hourly, day, and weekly rate you must actually charge after tax, business expenses, and unbillable time. Runs 100% in the browser — no signup, offline.
 
-![version](https://img.shields.io/badge/version-0.2.0-0E9488) ![status](https://img.shields.io/badge/status-live-0E9488) [![CI](https://github.com/awictor/rate-right/actions/workflows/ci.yml/badge.svg)](https://github.com/awictor/rate-right/actions/workflows/ci.yml)
+![version](https://img.shields.io/badge/version-0.3.0-0E9488) ![status](https://img.shields.io/badge/status-live-0E9488) [![CI](https://github.com/awictor/rate-right/actions/workflows/ci.yml/badge.svg)](https://github.com/awictor/rate-right/actions/workflows/ci.yml)
 
 ## Why
 
