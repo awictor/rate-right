@@ -18,7 +18,7 @@ globalThis.matchMedia=globalThis.window.matchMedia;
 try{Object.defineProperty(globalThis,'navigator',{value:{clipboard:{writeText:()=>Promise.resolve()}},configurable:true});}catch{}
 
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];
-eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate};`);
+eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate,billableSensitivity};`);
 const t=globalThis.__t;
 
 let n=0; const check=(name,fn)=>{fn();n++;console.log('  ok -',name);};
@@ -73,6 +73,13 @@ check('minViableRate: expenses / billable hours',()=>{
   // 12000 / 1104 = 10.87
   assert.ok(Math.abs(t.minViableRate(base)-10.8696)<0.01,'floor '+t.minViableRate(base));
   assert.equal(t.minViableRate({...base,billable:0}),Infinity);
+});
+
+check('billableSensitivity: higher utilization lowers required rate',()=>{
+  const rows=t.billableSensitivity(base,[40,60,80]);
+  assert.equal(rows.length,3);
+  assert.ok(rows[0].hourly>rows[1].hourly && rows[1].hourly>rows[2].hourly);
+  assert.ok(Math.abs(rows[1].hourly-t.computeRate(base).hourly)<0.001); // 60% == base
 });
 
 console.log(`\n${n} checks passed.`);

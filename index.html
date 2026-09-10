@@ -53,6 +53,11 @@
   .info{cursor:help;margin-left:3px;color:var(--muted);font-size:10px;vertical-align:super}
   .fullwrap{max-width:900px;margin:0 auto;padding:0 20px 20px}
   .sline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+  .stab{border-collapse:collapse;width:100%;font-size:13px}
+  .stab th,.stab td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line)}
+  .stab th:first-child,.stab td:first-child{text-align:left;color:var(--muted)}
+  .stab thead th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .stab tr.cur td{font-weight:700;color:var(--accent)}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
   footer a{color:var(--accent-d);text-decoration:none}
   @media print{
@@ -138,9 +143,17 @@
   </section>
 </div>
 
+<div class="fullwrap">
+  <section class="card">
+    <h2>Rate vs utilization</h2>
+    <div id="billHost"></div>
+    <div class="note">Utilization is the biggest lever on your rate — a few points of billable % move it more than working extra hours.</div>
+  </section>
+</div>
+
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.8.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.9.0
 </footer>
 
 <script>
@@ -170,6 +183,9 @@ function salaryEquivalent(s){
   const r=computeRate(s), salary=r.grossUp, salariedHourly=salary/2080;
   return {salary, salariedHourly, premiumX: salariedHourly>0 && isFinite(r.hourly) ? r.hourly/salariedHourly : Infinity};
 }
+
+// Required hourly at a set of billable-% levels, holding everything else fixed.
+function billableSensitivity(s,pcts){ return pcts.map(p=>({billable:p, hourly:computeRate({...s,billable:p}).hourly})); }
 
 // Floor rate: the hourly that just covers business expenses at zero take-home. Below this you lose money.
 function minViableRate(s){ const bh=s.weeks*s.hours*(s.billable/100); return bh>0 ? s.expenses/bh : Infinity; }
@@ -216,6 +232,13 @@ function calc(){
   $("billhrs").textContent=Math.round(r.billableHours).toLocaleString();
   $("util").textContent=(s.billable).toFixed(0)+"%";
   const floor=minViableRate(s); $("floor").textContent=(isFinite(floor)?money(floor):"∞")+"/hr";
+
+  const cur=Math.round(s.billable/10)*10;
+  const pcts=[40,50,60,70,80]; if(pcts.indexOf(cur)<0 && s.billable>0){ pcts.push(Math.round(s.billable)); pcts.sort((a,b)=>a-b); }
+  let bh='<table class="stab"><thead><tr><th>Billable %</th><th>Required rate</th></tr></thead><tbody>';
+  billableSensitivity(s,pcts).forEach(r=>{ const isc=Math.abs(r.billable-s.billable)<0.5;
+    bh+=`<tr class="${isc?'cur':''}"><td>${r.billable}%</td><td>${isFinite(r.hourly)?money(r.hourly)+"/hr":"∞"}</td></tr>`; });
+  bh+='</tbody></table>'; $("billHost").innerHTML=bh;
   const noted=[];
   if(s.billable>=80) noted.push("⚠ 80%+ billable is very hard to sustain — most freelancers land 50–70%.");
   else if(s.billable<40) noted.push("Low utilization — a higher billable % drops the rate you need.");
@@ -273,7 +296,7 @@ if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 })();
 calc();
 
-if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate};
+if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate,billableSensitivity};
 </script>
 </body>
 </html>
