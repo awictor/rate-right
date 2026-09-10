@@ -101,6 +101,7 @@
     <div class="grid3">
       <div class="stat"><div id="billhrs" class="v">0</div><div class="k">Billable hrs/yr</div></div>
       <div class="stat"><div id="util" class="v">0%</div><div class="k">Effective utilization</div></div>
+      <div class="stat"><div id="floor" class="v">$0</div><div class="k">Floor rate (break-even)</div></div>
     </div>
     <div id="note" class="note"></div>
   </section>
@@ -138,7 +139,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.6.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.7.0
 </footer>
 
 <script>
@@ -168,6 +169,9 @@ function salaryEquivalent(s){
   const r=computeRate(s), salary=r.grossUp, salariedHourly=salary/2080;
   return {salary, salariedHourly, premiumX: salariedHourly>0 && isFinite(r.hourly) ? r.hourly/salariedHourly : Infinity};
 }
+
+// Floor rate: the hourly that just covers business expenses at zero take-home. Below this you lose money.
+function minViableRate(s){ const bh=s.weeks*s.hours*(s.billable/100); return bh>0 ? s.expenses/bh : Infinity; }
 
 // Plain-text rate summary for proposals/emails.
 function summaryText(s){
@@ -210,6 +214,7 @@ function calc(){
   $("b_rev").textContent=rate(r.revenueNeeded);
   $("billhrs").textContent=Math.round(r.billableHours).toLocaleString();
   $("util").textContent=(s.billable).toFixed(0)+"%";
+  const floor=minViableRate(s); $("floor").textContent=(isFinite(floor)?money(floor):"∞")+"/hr";
   const noted=[];
   if(s.billable>=80) noted.push("⚠ 80%+ billable is very hard to sustain — most freelancers land 50–70%.");
   else if(s.billable<40) noted.push("Low utilization — a higher billable % drops the rate you need.");
@@ -256,7 +261,7 @@ try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("continge
 if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 calc();
 
-if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText};
+if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText,minViableRate};
 </script>
 </body>
 </html>
