@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RateRight — Freelance Rate Calculator</title>
+<meta name="description" content="Work out the hourly, day, and weekly rate you must charge to hit your take-home goal after tax, expenses, and unbillable time. 100% offline, no signup." />
+<meta name="theme-color" content="#0E9488" />
+<meta name="color-scheme" content="light dark" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="RateRight — Freelance Rate Calculator" />
+<meta property="og:description" content="The hourly / day / weekly rate you must charge to hit your take-home goal after tax, expenses, and unbillable time." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E9488'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23fff' font-family='Arial' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E" />
+<style>
+  :root{
+    --bg:#f4f8f7; --ink:#12211f; --accent:#0E9488; --accent-d:#0b756c;
+    --card:#fff; --line:#dfe9e7; --muted:#5f7a76; --good:#0f9d58; --bad:#e5484d; --field:#fff;
+    --shadow:0 1px 2px rgba(18,33,31,.05),0 8px 24px rgba(18,33,31,.07);
+  }
+  [data-theme="dark"]{
+    --bg:#0f1615; --ink:#e9f1ef; --accent:#2fd4c2; --accent-d:#57e0d1;
+    --card:#16211f; --line:#26332f; --muted:#8aa39e; --good:#34c884; --bad:#f0685c; --field:#0f1615;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  }
+  html[data-theme="dark"] body{background:var(--bg)}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  header{padding:28px 20px 8px;text-align:center;position:relative}
+  header h1{margin:0;font-size:26px;letter-spacing:-.02em} header h1 .m{color:var(--accent)}
+  header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+  #themeBtn{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:17px;cursor:pointer;box-shadow:var(--shadow)}
+  .wrap{max-width:900px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:760px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 14px;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .row{display:flex;align-items:center;justify-content:space-between;margin:10px 0;gap:12px}
+  .row label{font-size:14px;flex:1} .row .hint{display:block;font-size:11px;color:var(--muted)}
+  .ig{position:relative;width:130px}
+  .ig .pre{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+  input{width:100%;padding:9px 10px 9px 22px;border:1px solid var(--line);border-radius:9px;font-size:14px;text-align:right;background:var(--field);color:var(--ink)}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(14,148,136,.15)}
+  .result h2{color:var(--accent)}
+  .big{font-size:40px;font-weight:700;letter-spacing:-.02em;margin:2px 0;color:var(--accent)}
+  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .stat{background:var(--bg);border-radius:10px;padding:12px;text-align:center}
+  .stat .v{font-size:20px;font-weight:600} .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .bd{margin-top:16px;font-size:13px}
+  .bd .li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .bd .li:last-child{border-bottom:0;font-weight:700}
+  .note{margin-top:12px;font-size:13px;color:var(--muted)}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  footer a{color:var(--accent-d);text-decoration:none}
+</style>
+<script>(function(){try{var t=localStorage.getItem("rateright.theme")||((window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches)?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+</head>
+<body>
+<header>
+  <button id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+  <h1><span class="m">Rate</span>Right</h1>
+  <p>The rate you must charge to actually take home what you want — after tax, expenses, and unbillable time. Runs 100% in your browser.</p>
+</header>
+
+<div class="wrap">
+  <section class="card">
+    <h2>Your goal &amp; reality</h2>
+    <div class="row"><label>Target take-home / year<span class="hint">after tax, in your pocket</span></label><div class="ig"><span class="pre">$</span><input id="target" type="number" step="1000" value="90000"></div></div>
+    <div class="row"><label>Business expenses / year<span class="hint">tools, software, insurance</span></label><div class="ig"><span class="pre">$</span><input id="expenses" type="number" step="500" value="12000"></div></div>
+    <div class="row"><label>Effective tax rate %</label><div class="ig"><span class="pre">%</span><input id="tax" type="number" step="1" value="25"></div></div>
+    <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
+    <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
+    <div class="row"><label>Billable %<span class="hint">utilization: admin, sales eat the rest</span></label><div class="ig"><span class="pre">%</span><input id="billable" type="number" step="5" value="60"></div></div>
+  </section>
+
+  <section class="card result">
+    <h2>Charge at least</h2>
+    <div id="hourly" class="big">$0/hr</div>
+    <div class="grid3">
+      <div class="stat"><div id="day" class="v">$0</div><div class="k">Day rate (8h)</div></div>
+      <div class="stat"><div id="week" class="v">$0</div><div class="k">Week rate</div></div>
+    </div>
+    <div class="bd">
+      <div class="li"><span>Take-home target</span><span id="b_take">$0</span></div>
+      <div class="li"><span>+ tax gross-up</span><span id="b_tax">$0</span></div>
+      <div class="li"><span>+ business expenses</span><span id="b_exp">$0</span></div>
+      <div class="li"><span>Revenue you must bill</span><span id="b_rev">$0</span></div>
+    </div>
+    <div class="grid3">
+      <div class="stat"><div id="billhrs" class="v">0</div><div class="k">Billable hrs/yr</div></div>
+      <div class="stat"><div id="util" class="v">0%</div><div class="k">Effective utilization</div></div>
+    </div>
+    <div id="note" class="note"></div>
+  </section>
+</div>
+
+<footer>
+  <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.1.0
+</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const num=id=>{const v=parseFloat($(id).value);return isNaN(v)?0:v;};
+const money=n=>(n<0?"-$":"$")+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0});
+
+// Required billing rate to hit a take-home goal after tax, expenses, and unbillable time. Pure.
+function computeRate(s){
+  const tax=s.tax/100, util=s.billable/100;
+  const billableHours=s.weeks*s.hours*util;
+  const grossUp=tax<1 ? s.target/(1-tax) : Infinity;   // pre-tax profit needed for the take-home
+  const revenueNeeded=grossUp+s.expenses;              // plus business expenses
+  const hourly=billableHours>0 ? revenueNeeded/billableHours : Infinity;
+  return {billableHours, grossUp, revenueNeeded, hourly, day:hourly*8, week:hourly*s.hours,
+          taxPortion:grossUp-s.target};
+}
+
+const KEYS=["target","expenses","tax","weeks","hours","billable"];
+function readState(){const s={};KEYS.forEach(k=>s[k]=num(k));return s;}
+
+function calc(){
+  const s=readState(), r=computeRate(s);
+  KEYS.forEach(k=>{try{localStorage.setItem("rateright."+k,s[k]);}catch(e){}});
+  const rate=x=>isFinite(x)?money(x):"∞";
+  $("hourly").textContent=(isFinite(r.hourly)?money(r.hourly):"∞")+"/hr";
+  $("day").textContent=rate(r.day);
+  $("week").textContent=rate(r.week);
+  $("b_take").textContent=money(s.target);
+  $("b_tax").textContent="+"+rate(r.taxPortion);
+  $("b_exp").textContent="+"+money(s.expenses);
+  $("b_rev").textContent=rate(r.revenueNeeded);
+  $("billhrs").textContent=Math.round(r.billableHours).toLocaleString();
+  $("util").textContent=(s.billable).toFixed(0)+"%";
+  const noted=[];
+  if(s.billable>=80) noted.push("⚠ 80%+ billable is very hard to sustain — most freelancers land 50–70%.");
+  else if(s.billable<40) noted.push("Low utilization — a higher billable % drops the rate you need.");
+  if(isFinite(r.hourly)) noted.push(`At ${money(r.hourly)}/hr you'd bill ${money(r.revenueNeeded)} across ${Math.round(r.billableHours)} hours to keep ${money(s.target)}.`);
+  $("note").textContent=noted.join(" ");
+}
+document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
+$("themeBtn").onclick=()=>{const n=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);try{localStorage.setItem("rateright.theme",n);}catch(e){}$("themeBtn").textContent=n==="dark"?"☀️":"🌙";};
+$("themeBtn").textContent=document.documentElement.getAttribute("data-theme")==="dark"?"☀️":"🌙";
+try{$("yr").textContent=new Date().getFullYear();}catch(e){}
+KEYS.forEach(k=>{try{const v=localStorage.getItem("rateright."+k);if(v!=null)$(k).value=v;}catch(e){}});
+calc();
+
+if(typeof module!=="undefined") module.exports={computeRate};
+</script>
+</body>
+</html>
