@@ -54,6 +54,14 @@
   .sline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
   footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
   footer a{color:var(--accent-d);text-decoration:none}
+  @media print{
+    @page{margin:12mm}
+    #themeBtn,.btn,#shareMsg{display:none!important}
+    body{background:#fff}
+    .card{box-shadow:none;border:1px solid #ddd;break-inside:avoid}
+    .wrap{display:block} .wrap .card{margin-bottom:14px}
+    header p{display:none}
+  }
 </style>
 <script>(function(){try{var t=localStorage.getItem("rateright.theme")||((window.matchMedia&&matchMedia("(prefers-color-scheme:dark)").matches)?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 </head>
@@ -73,7 +81,7 @@
     <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
     <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
     <div class="row"><label>Billable %<span class="hint">utilization: admin, sales eat the rest</span></label><div class="ig"><span class="pre">%</span><input id="billable" type="number" step="5" value="60"></div></div>
-    <div style="margin-top:14px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><button id="copyBtn" class="btn">📋 Copy summary</button><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
+    <div style="margin-top:14px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><button id="copyBtn" class="btn">📋 Copy summary</button><button id="printBtn" class="btn">🖨 PDF</button><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
     <div id="shareMsg" style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px"></div>
   </section>
 
@@ -130,7 +138,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.5.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.6.0
 </footer>
 
 <script>
@@ -222,6 +230,7 @@ function calc(){
   $("se_note").textContent=isFinite(se.premiumX)?`Your rate is ${se.premiumX.toFixed(2)}× a salaried hourly. Freelancers typically need ~2× to cover taxes, benefits, and unbillable time.`:"";
 }
 document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
+$("printBtn").onclick=()=>window.print();
 $("copyBtn").onclick=()=>{
   const txt=summaryText(readState()), msg=x=>{$("shareMsg").textContent=x;};
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(()=>msg("✓ Summary copied."),()=>msg("Copy failed."));
