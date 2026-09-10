@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.11.0
+- Configurable day length — day rate uses your hours/day, not a fixed 8.
+
 ## 0.10.0
 - Multi-currency — $, £, €, C$, A$ symbol selector across the whole UI.
 
