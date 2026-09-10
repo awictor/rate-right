@@ -16,7 +16,7 @@ globalThis.window={matchMedia:()=>({matches:false})};
 globalThis.matchMedia=globalThis.window.matchMedia;
 
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];
-eval(js+`\n;globalThis.__t={computeRate,projectQuote};`);
+eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent};`);
 const t=globalThis.__t;
 
 let n=0; const check=(name,fn)=>{fn();n++;console.log('  ok -',name);};
@@ -46,6 +46,13 @@ check('projectQuote: hours × rate + contingency',()=>{
   assert.ok(Math.abs(q.base-40*q.hourly)<0.001);
   assert.ok(Math.abs(q.quote-q.base*1.15)<0.001);
   assert.ok(Math.abs(q.quote-5499.98)<0.5,'quote '+q.quote);
+});
+
+check('salaryEquivalent: W2 salary, salaried hourly, premium',()=>{
+  const se=t.salaryEquivalent(base); // grossUp 120000 -> salaried hourly 57.69; hourly 119.57 -> ~2.07x
+  assert.ok(Math.abs(se.salary-120000)<0.01);
+  assert.ok(Math.abs(se.salariedHourly-57.692)<0.01,'sh '+se.salariedHourly);
+  assert.ok(Math.abs(se.premiumX-2.072)<0.02,'prem '+se.premiumX);
 });
 
 console.log(`\n${n} checks passed.`);
