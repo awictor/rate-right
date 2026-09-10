@@ -73,7 +73,7 @@
     <div class="row"><label>Weeks worked / year<span class="hint">52 − vacation − holidays</span></label><div class="ig"><span class="pre">#</span><input id="weeks" type="number" step="1" value="46"></div></div>
     <div class="row"><label>Hours / week</label><div class="ig"><span class="pre">#</span><input id="hours" type="number" step="1" value="40"></div></div>
     <div class="row"><label>Billable %<span class="hint">utilization: admin, sales eat the rest</span></label><div class="ig"><span class="pre">%</span><input id="billable" type="number" step="5" value="60"></div></div>
-    <div style="margin-top:14px;text-align:right"><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
+    <div style="margin-top:14px;text-align:right;display:flex;gap:8px;justify-content:flex-end"><button id="copyBtn" class="btn">📋 Copy summary</button><button id="shareBtn" class="btn">🔗 Copy share link</button></div>
     <div id="shareMsg" style="font-size:12px;color:var(--muted);text-align:right;margin-top:6px"></div>
   </section>
 
@@ -130,7 +130,7 @@
 
 <footer>
   <b>RateRight</b> · offline freelance rate calculator · <a href="https://github.com/awictor/rate-right">source</a><br>
-  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.4.0
+  A planning estimate — confirm tax treatment with an accountant. © <span id="yr">2026</span> Alex Wictor · MIT · v0.5.0
 </footer>
 
 <script>
@@ -159,6 +159,19 @@ function projectQuote(s,projectHours,contingencyPct){
 function salaryEquivalent(s){
   const r=computeRate(s), salary=r.grossUp, salariedHourly=salary/2080;
   return {salary, salariedHourly, premiumX: salariedHourly>0 && isFinite(r.hourly) ? r.hourly/salariedHourly : Infinity};
+}
+
+// Plain-text rate summary for proposals/emails.
+function summaryText(s){
+  const r=computeRate(s), se=salaryEquivalent(s);
+  const rate=x=>isFinite(x)?money(x):"∞";
+  return [
+    "RateRight — freelance rate",
+    `Take-home target ${money(s.target)} · billable ${s.billable}% · ${s.weeks} wks × ${s.hours}h`,
+    `Rate: ${rate(r.hourly)}/hr · ${rate(r.day)}/day · ${rate(r.week)}/week`,
+    `Revenue to bill: ${rate(r.revenueNeeded)} across ${Math.round(r.billableHours)} hrs`,
+    `Equivalent W2 salary ~${rate(se.salary)} (${isFinite(se.premiumX)?se.premiumX.toFixed(2)+"×":"∞"} a salaried hourly)`,
+  ].join("\n");
 }
 
 const KEYS=["target","expenses","tax","weeks","hours","billable"];
@@ -209,6 +222,11 @@ function calc(){
   $("se_note").textContent=isFinite(se.premiumX)?`Your rate is ${se.premiumX.toFixed(2)}× a salaried hourly. Freelancers typically need ~2× to cover taxes, benefits, and unbillable time.`:"";
 }
 document.querySelectorAll("input").forEach(el=>el.addEventListener("input",calc));
+$("copyBtn").onclick=()=>{
+  const txt=summaryText(readState()), msg=x=>{$("shareMsg").textContent=x;};
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(()=>msg("✓ Summary copied."),()=>msg("Copy failed."));
+  else msg("Clipboard unavailable.");
+};
 $("shareBtn").onclick=()=>{
   const url=location.origin+location.pathname+"#s="+encodeInputs(readState());
   const msg=x=>{$("shareMsg").textContent=x;};
@@ -229,7 +247,7 @@ try{const c=localStorage.getItem("rateright.contingency");if(c!=null)$("continge
 if(loadFromHash()) $("shareMsg").textContent="Opened from a shared link.";
 calc();
 
-if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs};
+if(typeof module!=="undefined") module.exports={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText};
 </script>
 </body>
 </html>

@@ -18,7 +18,7 @@ globalThis.matchMedia=globalThis.window.matchMedia;
 try{Object.defineProperty(globalThis,'navigator',{value:{clipboard:{writeText:()=>Promise.resolve()}},configurable:true});}catch{}
 
 const js=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).sort((a,b)=>b.length-a.length)[0];
-eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs};`);
+eval(js+`\n;globalThis.__t={computeRate,projectQuote,salaryEquivalent,encodeInputs,decodeInputs,summaryText};`);
 const t=globalThis.__t;
 
 let n=0; const check=(name,fn)=>{fn();n++;console.log('  ok -',name);};
@@ -60,6 +60,13 @@ check('salaryEquivalent: W2 salary, salaried hourly, premium',()=>{
 check('share codec: round-trips inputs, rejects garbage',()=>{
   assert.deepEqual(t.decodeInputs(t.encodeInputs(base)),base);
   assert.equal(t.decodeInputs('!!!bad'),null);
+});
+
+check('summaryText: multiline with rate + salary lines',()=>{
+  const txt=t.summaryText(base);
+  assert.ok(txt.split('\n').length>=5);
+  assert.match(txt,/\/hr/);
+  assert.match(txt,/Equivalent W2 salary/);
 });
 
 console.log(`\n${n} checks passed.`);
