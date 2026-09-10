@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0
+- Multi-currency — $, £, €, C$, A$ symbol selector across the whole UI.
+
+## 0.9.0
+- Rate-vs-utilization table — required rate at 40–80% billable.
+
 ## 0.8.0
 - Glossary tooltips on metric tiles.
 
